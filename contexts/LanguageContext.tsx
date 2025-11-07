@@ -7,10 +7,14 @@ const translations = { id, en, cn };
 
 type Language = keyof typeof translations;
 
+interface InterpolationOptions {
+  [key: string]: string | number;
+}
+
 interface LanguageContextType {
   language: Language;
   setLanguage: (language: Language) => void;
-  t: (key: string) => string;
+  t: (key: string, options?: InterpolationOptions) => string;
   translations: any;
 }
 
@@ -30,9 +34,18 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
     localStorage.setItem('language', language);
   }, [language]);
 
-  const t = (key: string): string => {
+  const t = (key: string, options?: InterpolationOptions): string => {
     const languageData = translations[language]?.default || {};
-    return getNestedTranslation(languageData, key);
+    let translation = getNestedTranslation(languageData, key);
+
+    if (options && typeof translation === 'string') {
+        Object.keys(options).forEach((key) => {
+            const regex = new RegExp(`{${key}}`, 'g');
+            translation = translation.replace(regex, String(options[key]));
+        });
+    }
+
+    return translation;
   };
 
   const value = {

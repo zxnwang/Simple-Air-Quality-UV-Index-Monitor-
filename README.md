@@ -11,8 +11,9 @@ Aplikasi web yang modern dan responsif untuk memantau data kualitas udara dan in
 - **Visualisasi Data Intuitif**: Menggunakan level dan warna yang mudah dipahami (Baik, Sedang, Tidak Sehat) untuk memberikan pemahaman cepat tentang kondisi lingkungan.
 - **Informasi Rinci**: Klik pada kartu data mana pun untuk membuka modal yang berisi penjelasan mendalam, dampak kesehatan, dan rekomendasi praktis untuk setiap metrik.
 - **Dukungan Multibahasa**: Antarmuka sepenuhnya dapat diterjemahkan, dengan dukungan untuk Bahasa Indonesia (ID), Inggris (EN), dan Mandarin (中文). Preferensi bahasa disimpan untuk kunjungan berikutnya.
+- **Penyegaran Data Manual**: Tombol untuk menyegarkan data secara instan kapan saja, selain pembaruan otomatis.
+- **Bagan Perbandingan Kota**: Membuka modal untuk memvisualisasikan dan membandingkan metrik kualitas udara antara dua kota yang berbeda secara berdampingan.
 - **Desain Responsif**: Antarmuka yang bersih dan modern yang berfungsi mulus di perangkat desktop, tablet, dan seluler.
-- **Penyegaran Otomatis**: Data diperbarui secara berkala setiap 5 menit untuk memastikan informasi yang ditampilkan selalu yang terbaru.
 
 ## 🛠️ Teknologi yang Digunakan
 

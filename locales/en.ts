@@ -14,6 +14,12 @@ const translations = {
     poweredBy: "Powered by Open-Meteo and Current UV Index API",
     healthImpact: "Health Impact",
     recommendations: "Recommendations",
+    compareCities: "Compare Cities",
+  },
+  comparison: {
+    title: "Compare Air Quality",
+    selectCity: "Select a city to compare with {cityName}",
+    fetching: "Fetching comparison data...",
   },
   levels: {
     uv: {

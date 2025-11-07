@@ -4,8 +4,9 @@ import { indonesianCities } from '../data/cities';
 import { useTranslation } from '../hooks/useTranslation';
 
 interface CitySelectorProps {
-  selectedCity: IndonesianCity;
+  selectedCity: IndonesianCity | null;
   onCityChange: (city: IndonesianCity) => void;
+  disabledCityName?: string;
 }
 
 const SearchIcon = () => (
@@ -26,7 +27,7 @@ const ChevronUpDownIcon = ({ className = '' }: { className?: string }) => (
     </svg>
 );
 
-const CitySelector: React.FC<CitySelectorProps> = ({ selectedCity, onCityChange }) => {
+const CitySelector: React.FC<CitySelectorProps> = ({ selectedCity, onCityChange, disabledCityName }) => {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -36,11 +37,12 @@ const CitySelector: React.FC<CitySelectorProps> = ({ selectedCity, onCityChange 
   const searchInputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
 
-  const filteredCities = searchTerm === ''
+  const filteredCities = (searchTerm === ''
     ? indonesianCities
     : indonesianCities.filter((city) =>
         city.name.toLowerCase().replace(/\s+/g, '').includes(searchTerm.toLowerCase().replace(/\s+/g, ''))
-      );
+      )
+    ).filter(city => city.name !== disabledCityName);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -56,7 +58,7 @@ const CitySelector: React.FC<CitySelectorProps> = ({ selectedCity, onCityChange 
 
   useEffect(() => {
     if (isOpen) {
-      setHighlightedIndex(indonesianCities.findIndex(c => c.name === selectedCity.name) || 0);
+      setHighlightedIndex(indonesianCities.findIndex(c => c.name === selectedCity?.name) || 0);
       searchInputRef.current?.focus();
     }
   }, [isOpen, selectedCity]);
@@ -115,7 +117,7 @@ const CitySelector: React.FC<CitySelectorProps> = ({ selectedCity, onCityChange 
           aria-labelledby="listbox-label"
           onClick={() => setIsOpen(!isOpen)}
         >
-          <span className="block truncate text-gray-800 font-medium">{selectedCity.name}</span>
+          <span className="block truncate text-gray-800 font-medium">{selectedCity?.name || t('citySelector.searchPlaceholder')}</span>
           <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
             <ChevronUpDownIcon className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
           </span>
@@ -152,17 +154,17 @@ const CitySelector: React.FC<CitySelectorProps> = ({ selectedCity, onCityChange 
                   key={city.name}
                   id={`listbox-option-${city.name}`}
                   role="option"
-                  aria-selected={city.name === selectedCity.name}
+                  aria-selected={city.name === selectedCity?.name}
                   className={`relative cursor-pointer select-none py-2 pl-10 pr-4 text-gray-900 transition-colors duration-150 ${index === highlightedIndex ? 'bg-blue-100' : 'hover:bg-blue-50'}`}
                   onClick={() => handleSelect(city)}
                   onMouseEnter={() => setHighlightedIndex(index)}
                 >
-                  {city.name === selectedCity.name && (
+                  {city.name === selectedCity?.name && (
                     <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-blue-600">
                       <CheckIcon />
                     </span>
                   )}
-                  <span className={`block truncate ${city.name === selectedCity.name ? 'font-semibold' : 'font-normal'}`}>
+                  <span className={`block truncate ${city.name === selectedCity?.name ? 'font-semibold' : 'font-normal'}`}>
                     {city.name}
                   </span>
                 </li>

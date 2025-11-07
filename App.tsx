@@ -1,4 +1,4 @@
-import React, { useState, useEffect, ReactNode } from 'react';
+import React, { useState, useEffect, ReactNode, useCallback } from 'react';
 import type { AirQualityData, UvIndexData, IndonesianCity } from './types';
 import { fetchAirQuality, fetchUvIndex } from './services/weatherService';
 import Header from './components/Header';
@@ -6,6 +6,8 @@ import Spinner from './components/Spinner';
 import DataCard from './components/DataCard';
 import CitySelector from './components/CitySelector';
 import Modal from './components/Modal';
+import ComparisonChart from './components/ComparisonChart';
+import RefreshIcon from './components/RefreshIcon';
 import { indonesianCities } from './data/cities';
 import { useTranslation } from './hooks/useTranslation';
 
@@ -30,41 +32,50 @@ const App: React.FC = () => {
     const [airQuality, setAirQuality] = useState<AirQualityData | null>(null);
     const [uvIndex, setUvIndex] = useState<UvIndexData | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
+    const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
     const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
     const [modalMetricKey, setModalMetricKey] = useState<MetricKey | null>(null);
 
-    useEffect(() => {
-        if (!selectedCity) {
-            return;
-        }
+    const [isCompareModalOpen, setIsCompareModalOpen] = useState(false);
+    const [compareCity, setCompareCity] = useState<IndonesianCity | null>(null);
+    const [compareAirQuality, setCompareAirQuality] = useState<AirQualityData | null>(null);
+    const [isComparing, setIsComparing] = useState(false);
 
-        const fetchData = async () => {
-            if (!airQuality) {
-                setLoading(true);
-            }
-            setError(null);
-            try {
-                const [aqData, uvData] = await Promise.all([
-                    fetchAirQuality(selectedCity.latitude, selectedCity.longitude),
-                    fetchUvIndex(selectedCity.latitude, selectedCity.longitude),
-                ]);
-                setAirQuality(aqData);
-                setUvIndex(uvData);
-                setLastUpdated(new Date());
-            } catch (err) {
-                setError(err instanceof Error ? err.message : 'An unknown error occurred.');
-            } finally {
+    const fetchData = useCallback(async (isManualRefresh = false) => {
+        if (!selectedCity) return;
+
+        if (isManualRefresh) {
+            setIsRefreshing(true);
+        } else if (!airQuality) {
+            setLoading(true);
+        }
+        setError(null);
+
+        try {
+            const [aqData, uvData] = await Promise.all([
+                fetchAirQuality(selectedCity.latitude, selectedCity.longitude),
+                fetchUvIndex(selectedCity.latitude, selectedCity.longitude),
+            ]);
+            setAirQuality(aqData);
+            setUvIndex(uvData);
+            setLastUpdated(new Date());
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'An unknown error occurred.');
+        } finally {
+            if (isManualRefresh) {
+                setIsRefreshing(false);
+            } else {
                 setLoading(false);
             }
-        };
-        
-        fetchData();
-        
-        const intervalId = setInterval(fetchData, 300000);
+        }
+    }, [selectedCity, airQuality]);
 
+    useEffect(() => {
+        fetchData();
+        const intervalId = setInterval(fetchData, 300000);
         return () => clearInterval(intervalId);
-    }, [selectedCity]);
+    }, [fetchData]);
 
     const handleCityChange = (city: IndonesianCity) => {
         setAirQuality(null);
@@ -74,6 +85,26 @@ const App: React.FC = () => {
     
     const handleCardClick = (metricKey: MetricKey) => {
         setModalMetricKey(metricKey);
+    };
+
+    const handleCompareCityChange = async (city: IndonesianCity) => {
+        setCompareCity(city);
+        setCompareAirQuality(null);
+        setIsComparing(true);
+        try {
+            const aqData = await fetchAirQuality(city.latitude, city.longitude);
+            setCompareAirQuality(aqData);
+        } catch (err) {
+            console.error("Failed to fetch comparison data", err);
+        } finally {
+            setIsComparing(false);
+        }
+    };
+    
+    const closeCompareModal = () => {
+        setIsCompareModalOpen(false);
+        setCompareCity(null);
+        setCompareAirQuality(null);
     };
 
     const getUvIndexInfo = (uv: number | undefined): { text: string; color: string } => {
@@ -169,21 +200,32 @@ const App: React.FC = () => {
         return null;
     };
 
-
     return (
         <div className="bg-slate-50 min-h-screen text-gray-800">
             <main className="max-w-6xl mx-auto px-4 py-8">
                 <Header />
-                <CitySelector selectedCity={selectedCity} onCityChange={handleCityChange} />
+                <div className="flex flex-col items-center">
+                    <CitySelector selectedCity={selectedCity} onCityChange={handleCityChange} />
+                    <button
+                        onClick={() => setIsCompareModalOpen(true)}
+                        className="mt-2 px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75 transition-transform duration-200 hover:scale-105 animate-fade-in-up opacity-0"
+                        style={{ animationDelay: '300ms' }}
+                    >
+                        {t('app.compareCities')}
+                    </button>
+                </div>
                 <div className="mt-4">
                   <div className="animate-fade-in-up opacity-0" style={{ animationDelay: '400ms' }}>
                     <h2 className="text-2xl font-bold text-center text-gray-700 font-display mb-2">
                       {t('app.showingDataFor')} <span className="text-blue-600">{selectedCity.name}</span>
                     </h2>
                     {lastUpdated && !loading && (
-                      <p className="text-center text-gray-500 text-sm mb-6">
-                        {t('app.lastUpdated')} {lastUpdated.toLocaleTimeString()}
-                      </p>
+                      <div className="flex items-center justify-center gap-2 text-center text-gray-500 text-sm mb-6">
+                        <span>{t('app.lastUpdated')} {lastUpdated.toLocaleTimeString()}</span>
+                        <button onClick={() => fetchData(true)} disabled={isRefreshing} aria-label="Refresh data" className="text-blue-600 hover:text-blue-800 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors">
+                            <RefreshIcon spinning={isRefreshing} />
+                        </button>
+                      </div>
                     )}
                   </div>
                   {renderContent()}
@@ -212,6 +254,34 @@ const App: React.FC = () => {
                     </div>
                 </Modal>
             )}
+
+            <Modal isOpen={isCompareModalOpen} onClose={closeCompareModal} title={t('comparison.title')}>
+                <div className="grid grid-cols-2 gap-4 items-center border-b pb-4">
+                    <div className="text-center">
+                        <p className="font-bold text-lg text-blue-600">{selectedCity.name}</p>
+                    </div>
+                    <div className="text-center">
+                        <CitySelector
+                            selectedCity={compareCity}
+                            onCityChange={handleCompareCityChange}
+                            disabledCityName={selectedCity.name}
+                        />
+                    </div>
+                </div>
+                <div className="mt-4 min-h-[200px]">
+                    {isComparing && <Spinner />}
+                    {!isComparing && airQuality && compareAirQuality && compareCity ? (
+                        <ComparisonChart
+                            data1={airQuality}
+                            city1Name={selectedCity.name}
+                            data2={compareAirQuality}
+                            city2Name={compareCity.name}
+                        />
+                    ) : (
+                        !isComparing && <p className="text-center text-gray-500 mt-8">{t('comparison.selectCity', { cityName: selectedCity.name })}</p>
+                    )}
+                </div>
+            </Modal>
         </div>
     );
 };

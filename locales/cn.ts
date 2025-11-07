@@ -14,6 +14,12 @@ const translations = {
     poweredBy: "由 Open-Meteo 和 Current UV Index API 提供支持",
     healthImpact: "对健康的影响",
     recommendations: "建议",
+    compareCities: "比较城市",
+  },
+  comparison: {
+    title: "比较空气质量",
+    selectCity: "选择一个城市与 {cityName} 进行比较",
+    fetching: "正在获取比较数据...",
   },
   levels: {
     uv: {

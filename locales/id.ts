@@ -14,6 +14,12 @@ const translations = {
     poweredBy: "Didukung oleh Open-Meteo dan Current UV Index API",
     healthImpact: "Dampak Kesehatan",
     recommendations: "Rekomendasi",
+    compareCities: "Bandingkan Kota",
+  },
+  comparison: {
+    title: "Bandingkan Kualitas Udara",
+    selectCity: "Pilih kota untuk dibandingkan dengan {cityName}",
+    fetching: "Mengambil data perbandingan...",
   },
   levels: {
     uv: {
