@@ -1,0 +1,5 @@
+{
+  "name": "Simple Air Quality & UV Index Monitor ",
+  "description": "A sleek and modern web application to check real-time air quality and UV index data for major Indonesian cities. Provides essential environmental metrics with a clean, user-friendly interface.",
+  "requestFramePermissions": []
+}

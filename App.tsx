@@ -1,0 +1,175 @@
+import React, { useState, useEffect, ReactNode } from 'react';
+import type { AirQualityData, UvIndexData, IndonesianCity } from './types';
+import { fetchAirQuality, fetchUvIndex } from './services/weatherService';
+import Header from './components/Header';
+import Spinner from './components/Spinner';
+import DataCard from './components/DataCard';
+import CitySelector from './components/CitySelector';
+import { indonesianCities } from './data/cities';
+
+const SunIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+    </svg>
+);
+
+const WindIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+);
+
+type Pollutant = 'pm2_5' | 'pm10' | 'ozone' | 'carbon_monoxide' | 'nitrogen_dioxide' | 'sulphur_dioxide';
+
+const App: React.FC = () => {
+    const [selectedCity, setSelectedCity] = useState<IndonesianCity>(indonesianCities[0]);
+    const [airQuality, setAirQuality] = useState<AirQualityData | null>(null);
+    const [uvIndex, setUvIndex] = useState<UvIndexData | null>(null);
+    const [loading, setLoading] = useState<boolean>(true);
+    const [error, setError] = useState<string | null>(null);
+    const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+
+    useEffect(() => {
+        if (!selectedCity) {
+            return;
+        }
+
+        const fetchData = async () => {
+            if (!airQuality) {
+                setLoading(true);
+            }
+            setError(null);
+            try {
+                const [aqData, uvData] = await Promise.all([
+                    fetchAirQuality(selectedCity.latitude, selectedCity.longitude),
+                    fetchUvIndex(selectedCity.latitude, selectedCity.longitude),
+                ]);
+                setAirQuality(aqData);
+                setUvIndex(uvData);
+                setLastUpdated(new Date());
+            } catch (err) {
+                setError(err instanceof Error ? err.message : 'An unknown error occurred.');
+            } finally {
+                setLoading(false);
+            }
+        };
+        
+        fetchData();
+        
+        const intervalId = setInterval(fetchData, 300000);
+
+        return () => clearInterval(intervalId);
+    }, [selectedCity]);
+
+    const handleCityChange = (city: IndonesianCity) => {
+        setAirQuality(null);
+        setUvIndex(null);
+        setSelectedCity(city);
+    };
+
+    const getUvIndexInfo = (uv: number | undefined): { text: string; color: string } => {
+        if (typeof uv !== 'number' || isNaN(uv)) {
+            return { text: "N/A", color: "bg-gray-400" };
+        }
+        if (uv <= 2) return { text: "Rendah", color: "bg-green-500" };
+        if (uv <= 5) return { text: "Sedang", color: "bg-yellow-500" };
+        if (uv <= 7) return { text: "Tinggi", color: "bg-orange-500" };
+        if (uv <= 10) return { text: "Sangat Tinggi", color: "bg-red-500" };
+        return { text: "Ekstrem", color: "bg-purple-500" };
+    };
+    
+    const getAqiInfo = (pollutant: Pollutant, value: number): { text: string; color: string } => {
+        if (typeof value !== 'number' || isNaN(value)) {
+            return { text: "N/A", color: "bg-gray-400" };
+        }
+        switch (pollutant) {
+            case 'pm2_5':
+                if (value <= 12) return { text: "Baik", color: "bg-green-500" };
+                if (value <= 35.4) return { text: "Sedang", color: "bg-yellow-500" };
+                if (value <= 55.4) return { text: "Tidak Sehat (Sensitif)", color: "bg-orange-500" };
+                if (value <= 150.4) return { text: "Tidak Sehat", color: "bg-red-500" };
+                return { text: "Sangat Tidak Sehat", color: "bg-purple-500" };
+            case 'pm10':
+                if (value <= 54) return { text: "Baik", color: "bg-green-500" };
+                if (value <= 154) return { text: "Sedang", color: "bg-yellow-500" };
+                if (value <= 254) return { text: "Tidak Sehat (Sensitif)", color: "bg-orange-500" };
+                if (value <= 354) return { text: "Tidak Sehat", color: "bg-red-500" };
+                return { text: "Sangat Tidak Sehat", color: "bg-purple-500" };
+            case 'ozone': // in µg/m³
+                if (value <= 100) return { text: "Baik", color: "bg-green-500" };
+                if (value <= 160) return { text: "Sedang", color: "bg-yellow-500" };
+                return { text: "Tidak Sehat", color: "bg-orange-500" };
+            case 'carbon_monoxide': // in µg/m³
+                if (value <= 5000) return { text: "Baik", color: "bg-green-500" };
+                if (value <= 10000) return { text: "Sedang", color: "bg-yellow-500" };
+                return { text: "Tidak Sehat", color: "bg-orange-500" };
+            case 'nitrogen_dioxide': // in µg/m³
+                if (value <= 100) return { text: "Baik", color: "bg-green-500" };
+                if (value <= 188) return { text: "Sedang", color: "bg-yellow-500" };
+                return { text: "Tidak Sehat", color: "bg-orange-500" };
+            case 'sulphur_dioxide': // in µg/m³
+                if (value <= 90) return { text: "Baik", color: "bg-green-500" };
+                if (value <= 190) return { text: "Sedang", color: "bg-yellow-500" };
+                return { text: "Tidak Sehat", color: "bg-orange-500" };
+            default:
+                return { text: "", color: "bg-gray-400" };
+        }
+    };
+
+    const renderContent = () => {
+        if (loading) {
+            return <Spinner />;
+        }
+        if (error) {
+            return <div className="text-center text-red-500 bg-red-100 p-4 rounded-lg">{error}</div>;
+        }
+       
+        if (airQuality && uvIndex) {
+            const uvValue = uvIndex?.[0]?.value;
+            const uvInfo = getUvIndexInfo(uvValue);
+            
+            const metrics: {title: string, value: number | string, unit: string, icon: ReactNode, colorClass: string, description: string, level?: { text: string; color: string }}[] = [
+                 { title: "Indeks UV", value: typeof uvValue === 'number' ? uvValue.toFixed(1) : 'N/A', unit: "", icon: <SunIcon/>, colorClass: uvInfo.color, description: "Mengukur kekuatan radiasi ultraviolet yang menghasilkan sengatan matahari.", level: { text: uvInfo.text, color: uvInfo.color } },
+                 { title: "PM2.5", value: airQuality.current.pm2_5, unit: airQuality.current_units.pm2_5, icon: <WindIcon/>, colorClass: "bg-teal-500", description: "Partikel halus yang dapat dihirup, diameter < 2,5 mikrometer.", level: getAqiInfo('pm2_5', airQuality.current.pm2_5) },
+                 { title: "PM10", value: airQuality.current.pm10, unit: airQuality.current_units.pm10, icon: <WindIcon/>, colorClass: "bg-cyan-500", description: "Partikel kasar yang dapat dihirup, diameter < 10 mikrometer.", level: getAqiInfo('pm10', airQuality.current.pm10) },
+                 { title: "Ozon (O₃)", value: airQuality.current.ozone, unit: airQuality.current_units.ozone, icon: <WindIcon/>, colorClass: "bg-indigo-500", description: "Komponen utama kabut asap, berbahaya di permukaan tanah.", level: getAqiInfo('ozone', airQuality.current.ozone) },
+                 { title: "Karbon Monoksida (CO)", value: airQuality.current.carbon_monoxide, unit: airQuality.current_units.carbon_monoxide, icon: <WindIcon/>, colorClass: "bg-slate-500", description: "Gas beracun dari pembakaran tidak sempurna.", level: getAqiInfo('carbon_monoxide', airQuality.current.carbon_monoxide) },
+                 { title: "Nitrogen Dioksida (NO₂)", value: airQuality.current.nitrogen_dioxide, unit: airQuality.current_units.nitrogen_dioxide, icon: <WindIcon/>, colorClass: "bg-amber-500", description: "Gas reaktif dari emisi kendaraan dan industri.", level: getAqiInfo('nitrogen_dioxide', airQuality.current.nitrogen_dioxide) },
+                 { title: "Sulfur Dioksida (SO₂)", value: airQuality.current.sulphur_dioxide, unit: airQuality.current_units.sulphur_dioxide, icon: <WindIcon/>, colorClass: "bg-lime-500", description: "Gas dari pembakaran bahan bakar fosil, penyebab hujan asam.", level: getAqiInfo('sulphur_dioxide', airQuality.current.sulphur_dioxide) },
+            ];
+
+            return (
+                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {metrics.map(metric => <DataCard key={metric.title} {...metric} />)}
+                </div>
+            );
+        }
+        return null;
+    };
+
+
+    return (
+        <div className="bg-slate-50 min-h-screen text-gray-800">
+            <main className="max-w-6xl mx-auto px-4 py-8">
+                <Header />
+                <CitySelector selectedCity={selectedCity} onCityChange={handleCityChange} />
+                <div className="mt-4">
+                  <h2 className="text-2xl font-bold text-center text-gray-700 font-display mb-2">
+                    Menampilkan data untuk <span className="text-blue-600">{selectedCity.name}</span>
+                  </h2>
+                  {lastUpdated && !loading && (
+                    <p className="text-center text-gray-500 text-sm mb-6">
+                      Terakhir diperbarui pada {lastUpdated.toLocaleTimeString()}
+                    </p>
+                  )}
+                  {renderContent()}
+                </div>
+            </main>
+            <footer className="text-center py-6 text-sm text-gray-400">
+                <p>Powered by Open-Meteo and Current UV Index API</p>
+            </footer>
+        </div>
+    );
+};
+
+export default App;
