@@ -1,6 +1,6 @@
 # Monitor Kualitas Udara & Indeks UV
 
-![Banner Aplikasi](https://github.com/zxnwang/Simple-Air-Quality-UV-Index-Monitor-/blob/main/Screenshot%202025-11-07%20192310.png?raw=true)
+![Banner Aplikasi](https://github.com/zxnwang/zxnwang/blob/main/airpllutant.png?raw=true)
 
 Aplikasi web yang modern dan responsif untuk memantau data kualitas udara dan indeks UV secara real-time untuk kota-kota besar di Indonesia. Aplikasi ini menyediakan metrik lingkungan penting dengan antarmuka yang bersih, intuitif, dan mendukung multibahasa.
 
