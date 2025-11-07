@@ -1,20 +1,32 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# Monitor Kualitas Udara & Indeks UV
 
-# Run and deploy your AI Studio app
+![Banner Aplikasi](https://github.com/zxnwang/Simple-Air-Quality-UV-Index-Monitor-/blob/main/Screenshot%202025-11-07%20192310.png?raw=true)
 
-This contains everything you need to run your app locally.
+Aplikasi web yang modern dan responsif untuk memantau data kualitas udara dan indeks UV secara real-time untuk kota-kota besar di Indonesia. Aplikasi ini menyediakan metrik lingkungan penting dengan antarmuka yang bersih, intuitif, dan mendukung multibahasa.
 
-View your app in AI Studio: https://ai.studio/apps/drive/1d7Z1ooCN7UVC7o3_cPDIUJ2MBAhnbniV
+## ✨ Fitur Utama
 
-## Run Locally
+- **Data Real-Time**: Mengambil data langsung untuk berbagai polutan (PM2.5, PM10, Ozon, CO, dll.) dan Indeks UV saat ini dari API yang andal.
+- **Pemilih Kota Interaktif**: Cari dan pilih dengan mudah dari daftar lengkap kota-kota di Indonesia untuk mendapatkan data spesifik lokasi.
+- **Visualisasi Data Intuitif**: Menggunakan level dan warna yang mudah dipahami (Baik, Sedang, Tidak Sehat) untuk memberikan pemahaman cepat tentang kondisi lingkungan.
+- **Informasi Rinci**: Klik pada kartu data mana pun untuk membuka modal yang berisi penjelasan mendalam, dampak kesehatan, dan rekomendasi praktis untuk setiap metrik.
+- **Dukungan Multibahasa**: Antarmuka sepenuhnya dapat diterjemahkan, dengan dukungan untuk Bahasa Indonesia (ID), Inggris (EN), dan Mandarin (中文). Preferensi bahasa disimpan untuk kunjungan berikutnya.
+- **Desain Responsif**: Antarmuka yang bersih dan modern yang berfungsi mulus di perangkat desktop, tablet, dan seluler.
+- **Penyegaran Otomatis**: Data diperbarui secara berkala setiap 5 menit untuk memastikan informasi yang ditampilkan selalu yang terbaru.
 
-**Prerequisites:**  Node.js
+## 🛠️ Teknologi yang Digunakan
 
+- **Frontend**: React, TypeScript
+- **Styling**: Tailwind CSS
+- **Manajemen State Global (i18n)**: React Context API untuk mengelola status bahasa dan terjemahan.
+- **Sumber Data API**:
+  - **Kualitas Udara**: [Open-Meteo Air Quality API](https://open-meteo.com/)
+  - **Indeks UV**: [Current UV Index API](https://currentuvindex.com/)
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+## 🚀 Memulai
+
+Aplikasi ini dirancang untuk berjalan di lingkungan pengembangan web modern. Cukup layani file `index.html` dan pastikan dependensi diimpor dengan benar untuk memulai.
+
+---
+
+*Proyek ini dibuat untuk memberikan akses mudah ke informasi lingkungan yang penting, membantu pengguna membuat keputusan yang lebih baik untuk kesehatan mereka.*
